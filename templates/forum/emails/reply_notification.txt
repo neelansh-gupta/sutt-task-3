@@ -1,0 +1,10 @@
+Hi {{ recipient.get_display_name }},
+
+{{ reply.author.get_display_name }} has replied to your thread "{{ thread.title }}":
+
+{{ reply.content|truncatewords:50 }}
+
+View the full thread here: {{ thread_url }}
+
+---
+You received this email because someone replied to your thread on StudyDeck Forum.

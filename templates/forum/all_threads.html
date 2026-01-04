@@ -1,0 +1,146 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}All Threads - StudyDeck Forum{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <!-- Page Header -->
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1><i class="bi bi-list-ul"></i> All Threads</h1>
+            {% if user.is_authenticated %}
+                <a href="{% url 'forum:create_thread' %}" class="btn btn-primary">
+                    <i class="bi bi-plus-circle"></i> New Thread
+                </a>
+            {% endif %}
+        </div>
+        
+        <!-- Filters and Sorting -->
+        <div class="card mb-4">
+            <div class="card-body">
+                <form method="get" class="row g-3">
+                    <div class="col-md-3">
+                        <input type="text" name="q" class="form-control" placeholder="Search threads..." 
+                               value="{{ search_query }}">
+                    </div>
+                    <div class="col-md-2">
+                        <select name="category" class="form-select">
+                            <option value="">All Categories</option>
+                            {% for cat in categories %}
+                                <option value="{{ cat.slug }}" {% if current_category == cat.slug %}selected{% endif %}>
+                                    {{ cat.name }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <select name="tag" class="form-select">
+                            <option value="">All Tags</option>
+                            {% for tag in tags %}
+                                <option value="{{ tag.slug }}" {% if current_tag == tag.slug %}selected{% endif %}>
+                                    {{ tag.name }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <select name="sort" class="form-select">
+                            <option value="latest" {% if current_sort == 'latest' %}selected{% endif %}>Latest Activity</option>
+                            <option value="popular" {% if current_sort == 'popular' %}selected{% endif %}>Most Popular</option>
+                            <option value="most_viewed" {% if current_sort == 'most_viewed' %}selected{% endif %}>Most Viewed</option>
+                            <option value="oldest" {% if current_sort == 'oldest' %}selected{% endif %}>Oldest First</option>
+                            <option value="unanswered" {% if current_sort == 'unanswered' %}selected{% endif %}>Unanswered</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <button type="submit" class="btn btn-outline-primary w-100">
+                            <i class="bi bi-funnel"></i> Apply
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        
+        <!-- Threads List -->
+        {% if threads %}
+            <div class="list-group">
+                {% for thread in threads %}
+                    <div class="list-group-item">
+                        <div class="d-flex w-100 justify-content-between">
+                            <div class="flex-grow-1">
+                                <h5 class="mb-1">
+                                    {% if thread.is_pinned %}
+                                        <i class="bi bi-pin-angle-fill text-danger"></i>
+                                    {% endif %}
+                                    {% if thread.is_locked %}
+                                        <i class="bi bi-lock-fill text-warning"></i>
+                                    {% endif %}
+                                    <a href="{% url 'forum:thread_detail' thread.pk %}" class="text-decoration-none">
+                                        {{ thread.title }}
+                                    </a>
+                                </h5>
+                                <p class="mb-2">{{ thread.content|truncatechars:150 }}</p>
+                                <div class="mb-2">
+                                    {% for tag in thread.tags.all|slice:":3" %}
+                                        <span class="badge bg-secondary">{{ tag.name }}</span>
+                                    {% endfor %}
+                                    <span class="badge bg-info">{{ thread.category.name }}</span>
+                                </div>
+                                <small class="text-muted">
+                                    <i class="bi bi-person"></i> {{ thread.author.get_display_name }}
+                                    &bull; <i class="bi bi-clock"></i> {{ thread.last_activity|timesince }} ago
+                                    &bull; <i class="bi bi-chat-dots"></i> {{ thread.reply_count }} repl{{ thread.reply_count|pluralize:"y,ies" }}
+                                    &bull; <i class="bi bi-heart"></i> {{ thread.like_count }} like{{ thread.like_count|pluralize }}
+                                    &bull; <i class="bi bi-eye"></i> {{ thread.views }} view{{ thread.views|pluralize }}
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+            
+            <!-- Pagination -->
+            {% if threads.has_other_pages %}
+                <nav aria-label="Page navigation" class="mt-4">
+                    <ul class="pagination justify-content-center">
+                        {% if threads.has_previous %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ threads.previous_page_number }}&sort={{ current_sort }}&category={{ current_category }}&tag={{ current_tag }}&q={{ search_query }}">
+                                    Previous
+                                </a>
+                            </li>
+                        {% endif %}
+                        
+                        {% for num in threads.paginator.page_range %}
+                            {% if threads.number == num %}
+                                <li class="page-item active">
+                                    <span class="page-link">{{ num }}</span>
+                                </li>
+                            {% elif num > threads.number|add:'-3' and num < threads.number|add:'3' %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ num }}&sort={{ current_sort }}&category={{ current_category }}&tag={{ current_tag }}&q={{ search_query }}">
+                                        {{ num }}
+                                    </a>
+                                </li>
+                            {% endif %}
+                        {% endfor %}
+                        
+                        {% if threads.has_next %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ threads.next_page_number }}&sort={{ current_sort }}&category={{ current_category }}&tag={{ current_tag }}&q={{ search_query }}">
+                                    Next
+                                </a>
+                            </li>
+                        {% endif %}
+                    </ul>
+                </nav>
+            {% endif %}
+        {% else %}
+            <div class="alert alert-info">
+                <i class="bi bi-info-circle"></i> No threads found matching your criteria.
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

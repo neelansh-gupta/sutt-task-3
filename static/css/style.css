@@ -1,0 +1,168 @@
+/* Custom styles for StudyDeck Forum */
+
+:root {
+    --bs-primary: #0d6efd;
+    --bs-success: #198754;
+    --bs-warning: #ffc107;
+    --bs-danger: #dc3545;
+    --bs-info: #0dcaf0;
+}
+
+body {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+main {
+    flex: 1;
+}
+
+/* Thread and Reply Content */
+.thread-content, .reply-content {
+    font-size: 1rem;
+    line-height: 1.6;
+}
+
+.thread-content img, .reply-content img {
+    max-width: 100%;
+    height: auto;
+}
+
+.thread-content pre, .reply-content pre {
+    background-color: #f8f9fa;
+    padding: 1rem;
+    border-radius: 0.25rem;
+    overflow-x: auto;
+}
+
+.thread-content code, .reply-content code {
+    background-color: #f8f9fa;
+    padding: 0.2rem 0.4rem;
+    border-radius: 0.2rem;
+    font-family: 'Courier New', monospace;
+}
+
+/* Badges and Tags */
+.badge {
+    font-weight: normal;
+    padding: 0.35em 0.65em;
+}
+
+/* Thread List */
+.list-group-item {
+    transition: background-color 0.2s;
+}
+
+.list-group-item:hover {
+    background-color: #f8f9fa;
+}
+
+/* User Avatar */
+.user-avatar {
+    width: 48px;
+    height: 48px;
+    object-fit: cover;
+}
+
+/* Pagination */
+.pagination {
+    margin-bottom: 0;
+}
+
+/* Forms */
+.form-control:focus, .form-select:focus {
+    border-color: var(--bs-primary);
+    box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+}
+
+/* Markdown Editor */
+.markdownx-preview {
+    border: 1px solid #dee2e6;
+    padding: 1rem;
+    border-radius: 0.25rem;
+    min-height: 200px;
+    background-color: #fff;
+}
+
+/* Like Button Animation */
+.btn-outline-danger:hover .bi-heart::before {
+    content: "\f415"; /* heart-fill icon */
+}
+
+/* Thread Status Icons */
+.bi-pin-angle-fill {
+    color: var(--bs-danger);
+}
+
+.bi-lock-fill {
+    color: var(--bs-warning);
+}
+
+/* Solution Badge */
+.border-success {
+    border-width: 2px !important;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .user-info {
+        text-align: left !important;
+        border-right: none !important;
+        border-bottom: 1px solid #dee2e6;
+        padding-bottom: 1rem;
+        margin-bottom: 1rem;
+    }
+}
+
+/* Loading spinner */
+.spinner-border {
+    width: 1rem;
+    height: 1rem;
+    border-width: 0.15em;
+}
+
+/* Alert styles */
+.alert {
+    border: none;
+    border-radius: 0.5rem;
+}
+
+/* Card hover effects */
+.card {
+    transition: box-shadow 0.2s;
+}
+
+.card:hover {
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+}
+
+/* Navbar customization */
+.navbar-brand {
+    font-weight: bold;
+    font-size: 1.5rem;
+}
+
+/* Footer */
+footer {
+    background-color: #f8f9fa;
+    border-top: 1px solid #dee2e6;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+    width: 10px;
+}
+
+::-webkit-scrollbar-track {
+    background: #f1f1f1;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #888;
+    border-radius: 5px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #555;
+}

@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% load account %}
+
+{% block title %}Confirm Email - StudyDeck Forum{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6 col-lg-5">
+        <div class="card shadow">
+            <div class="card-header bg-primary text-white">
+                <h3 class="mb-0 text-center">
+                    <i class="bi bi-envelope-check"></i> Confirm Email
+                </h3>
+            </div>
+            <div class="card-body text-center">
+                {% if confirmation %}
+                    <p class="mb-4">
+                        Please confirm that 
+                        <strong>{{ confirmation.email_address.email }}</strong> 
+                        is your email address.
+                    </p>
+                    
+                    <form method="post" action="{% url 'account_confirm_email' confirmation.key %}">
+                        {% csrf_token %}
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-check-circle"></i> Confirm Email
+                            </button>
+                        </div>
+                    </form>
+                {% else %}
+                    <div class="alert alert-danger">
+                        <i class="bi bi-exclamation-triangle"></i>
+                        This email confirmation link has expired or is invalid.
+                    </div>
+                    <a href="{% url 'account_email' %}" class="btn btn-primary">
+                        Request New Confirmation
+                    </a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

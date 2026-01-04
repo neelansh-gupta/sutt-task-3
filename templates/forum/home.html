@@ -1,0 +1,123 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Forum Home - StudyDeck{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-lg-8">
+        <h1 class="mb-4">
+            <i class="bi bi-chat-square-dots"></i> Discussion Forum
+        </h1>
+        
+        <!-- Categories -->
+        <div class="card mb-4">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0"><i class="bi bi-folder2-open"></i> Categories</h5>
+            </div>
+            <div class="list-group list-group-flush">
+                {% for category in categories %}
+                    <a href="{% url 'forum:category_detail' category.slug %}" class="list-group-item list-group-item-action">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="mb-1">
+                                    <i class="{{ category.icon }}"></i> {{ category.name }}
+                                </h6>
+                                <p class="text-muted mb-0 small">{{ category.description }}</p>
+                            </div>
+                            <div class="text-end">
+                                <span class="badge bg-primary rounded-pill">
+                                    {{ category.thread_count }} threads
+                                </span>
+                            </div>
+                        </div>
+                    </a>
+                {% empty %}
+                    <div class="list-group-item">
+                        <p class="mb-0 text-muted">No categories available.</p>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-4">
+        <!-- Recent Threads -->
+        <div class="card mb-4">
+            <div class="card-header bg-success text-white">
+                <h6 class="mb-0"><i class="bi bi-clock-history"></i> Recent Discussions</h6>
+            </div>
+            <div class="list-group list-group-flush">
+                {% for thread in recent_threads %}
+                    <a href="{% url 'forum:thread_detail' thread.pk %}" class="list-group-item list-group-item-action">
+                        <div class="d-flex w-100 justify-content-between">
+                            <h6 class="mb-1 text-truncate">{{ thread.title }}</h6>
+                        </div>
+                        <p class="mb-1 small">
+                            <i class="bi bi-person"></i> {{ thread.author.get_display_name }}
+                        </p>
+                        <small class="text-muted">
+                            <i class="bi bi-folder"></i> {{ thread.category.name }}
+                        </small>
+                    </a>
+                {% empty %}
+                    <div class="list-group-item">
+                        <p class="mb-0 text-muted small">No recent threads.</p>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+        
+        <!-- Popular Threads -->
+        <div class="card">
+            <div class="card-header bg-warning text-dark">
+                <h6 class="mb-0"><i class="bi bi-fire"></i> Popular Discussions</h6>
+            </div>
+            <div class="list-group list-group-flush">
+                {% for thread in popular_threads %}
+                    <a href="{% url 'forum:thread_detail' thread.pk %}" class="list-group-item list-group-item-action">
+                        <div class="d-flex w-100 justify-content-between">
+                            <h6 class="mb-1 text-truncate">{{ thread.title }}</h6>
+                            <small>
+                                <i class="bi bi-heart-fill text-danger"></i> {{ thread.like_count }}
+                            </small>
+                        </div>
+                        <p class="mb-1 small">
+                            <i class="bi bi-person"></i> {{ thread.author.get_display_name }}
+                        </p>
+                        <small class="text-muted">
+                            <i class="bi bi-eye"></i> {{ thread.views }} views
+                        </small>
+                    </a>
+                {% empty %}
+                    <div class="list-group-item">
+                        <p class="mb-0 text-muted small">No popular threads.</p>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+        
+        <!-- Quick Stats -->
+        {% if user.is_authenticated %}
+            <div class="card mt-4">
+                <div class="card-header bg-info text-white">
+                    <h6 class="mb-0"><i class="bi bi-info-circle"></i> Your Stats</h6>
+                </div>
+                <div class="card-body">
+                    <p class="mb-2">
+                        <i class="bi bi-chat-left-text"></i> Threads: <strong>{{ user.threads.count }}</strong>
+                    </p>
+                    <p class="mb-2">
+                        <i class="bi bi-reply"></i> Replies: <strong>{{ user.replies.count }}</strong>
+                    </p>
+                    {% if user.can_moderate %}
+                        <p class="mb-0 text-success">
+                            <i class="bi bi-shield-check"></i> <strong>Moderator</strong>
+                        </p>
+                    {% endif %}
+                </div>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

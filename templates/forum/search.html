@@ -1,0 +1,110 @@
+{% extends 'base.html' %}
+
+{% block title %}{% if query %}Search Results - {% endif %}Search Forum - StudyDeck{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h2 class="mb-4">
+            <i class="bi bi-search"></i> {% if query %}Search Results{% else %}Search Forum{% endif %}
+        </h2>
+        
+        <!-- Search Form -->
+        <div class="card mb-4">
+            <div class="card-body">
+                <form method="get" action="{% url 'forum:search' %}">
+                    <div class="input-group">
+                        <input type="text" 
+                               class="form-control" 
+                               name="q" 
+                               placeholder="Search for threads, replies, topics..." 
+                               value="{{ query }}"
+                               autofocus>
+                        <button class="btn btn-primary" type="submit">
+                            <i class="bi bi-search"></i> Search
+                        </button>
+                    </div>
+                    {% if query %}
+                    <small class="text-muted">
+                        Found {{ result_count }} result{{ result_count|pluralize }} for "{{ query }}"
+                    </small>
+                    {% endif %}
+                </form>
+            </div>
+        </div>
+        
+        {% if query %}
+        {% if threads %}
+            <div class="card mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">Threads</h5>
+                </div>
+                <div class="list-group list-group-flush">
+                    {% for thread in threads %}
+                        <a href="{% url 'forum:thread_detail' thread.pk %}" class="list-group-item list-group-item-action">
+                            <h5>{{ thread.title }}</h5>
+                            <p class="mb-1 text-muted">
+                                <i class="bi bi-folder"></i> {{ thread.category.name }}
+                                &bull; <i class="bi bi-person"></i> {{ thread.author.get_display_name }}
+                                &bull; <i class="bi bi-clock"></i> {{ thread.created_at|timesince }} ago
+                            </p>
+                        </a>
+                    {% endfor %}
+                </div>
+            </div>
+        {% endif %}
+        
+        {% if replies %}
+            <div class="card">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0">Replies</h5>
+                </div>
+                <div class="list-group list-group-flush">
+                    {% for reply in replies %}
+                        <a href="{% url 'forum:thread_detail' reply.thread.pk %}" class="list-group-item list-group-item-action">
+                            <h6>In thread: {{ reply.thread.title }}</h6>
+                            <p class="mb-1">{{ reply.content|truncatechars:150 }}</p>
+                            <p class="mb-0 text-muted small">
+                                <i class="bi bi-person"></i> {{ reply.author.get_display_name }}
+                                &bull; <i class="bi bi-clock"></i> {{ reply.created_at|timesince }} ago
+                            </p>
+                        </a>
+                    {% endfor %}
+                </div>
+            </div>
+        {% endif %}
+        
+        {% if not threads and not replies %}
+            <div class="alert alert-info">
+                <i class="bi bi-info-circle"></i> No results found for your search.
+            </div>
+        {% endif %}
+        {% else %}
+            <!-- Show some helpful tips when no search query -->
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Search Tips</h5>
+                    <ul>
+                        <li>Search for course codes like "CS F111" or "MATH F113"</li>
+                        <li>Look for topics like "recursion", "OOP", "midsem"</li>
+                        <li>Find discussions about projects, assignments, or exams</li>
+                        <li>Search for resource requests or study materials</li>
+                    </ul>
+                    
+                    <h5 class="mt-4">Popular Search Terms</h5>
+                    <div class="d-flex flex-wrap gap-2">
+                        <a href="?q=midsem" class="btn btn-sm btn-outline-primary">midsem</a>
+                        <a href="?q=notes" class="btn btn-sm btn-outline-primary">notes</a>
+                        <a href="?q=project" class="btn btn-sm btn-outline-primary">project</a>
+                        <a href="?q=doubt" class="btn btn-sm btn-outline-primary">doubt</a>
+                        <a href="?q=CS F111" class="btn btn-sm btn-outline-primary">CS F111</a>
+                        <a href="?q=assignment" class="btn btn-sm btn-outline-primary">assignment</a>
+                        <a href="?q=tips" class="btn btn-sm btn-outline-primary">tips</a>
+                        <a href="?q=help" class="btn btn-sm btn-outline-primary">help</a>
+                    </div>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
