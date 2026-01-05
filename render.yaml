@@ -9,7 +9,7 @@ services:
     name: studydeck-forum
     runtime: python
     plan: free
-    buildCommand: "pip install -r requirements.txt"
+    buildCommand: "./build.sh"
     startCommand: "gunicorn studydeck_forum.wsgi:application"
     envVars:
       - key: DATABASE_URL
