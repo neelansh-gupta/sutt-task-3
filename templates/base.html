@@ -49,10 +49,22 @@
                             </a>
                         </li>
                         {% if user.can_moderate %}
-                            <li class="nav-item">
-                                <a class="nav-link" href="{% url 'forum:moderation_queue' %}">
+                            <li class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle" href="#" id="moderationDropdown" role="button" data-bs-toggle="dropdown">
                                     <i class="bi bi-shield-check"></i> Moderation
                                 </a>
+                                <ul class="dropdown-menu">
+                                    <li>
+                                        <a class="dropdown-item" href="{% url 'forum:moderation_queue' %}">
+                                            <i class="bi bi-flag"></i> Reports Queue
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a class="dropdown-item" href="{% url 'forum:manage_users' %}">
+                                            <i class="bi bi-people"></i> Manage Users
+                                        </a>
+                                    </li>
+                                </ul>
                             </li>
                         {% endif %}
                     {% endif %}

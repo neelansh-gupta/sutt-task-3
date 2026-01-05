@@ -315,4 +315,4 @@ staticfiles.json
 debug_toolbar/
 
 # Temporary script files (keep the main ones)
-check_admin.py  # Temporary debugging script
+check_admin.py  # Temporary debugging scriptcheck_admin.py  # Temporary debugging script

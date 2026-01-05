@@ -1,5 +1,6 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth import get_user_model
 from django.contrib import messages
 from django.core.paginator import Paginator
 from django.db.models import Q, Count, Prefetch
@@ -10,6 +11,8 @@ from django.urls import reverse
 from django_ratelimit.decorators import ratelimit
 from django.conf import settings
 from django.db import connection
+
+User = get_user_model()
 
 # Import PostgreSQL search if available
 try:
@@ -519,12 +522,157 @@ def report_content(request):
 
 @login_required
 @moderator_required
+def manage_users(request):
+    """Manage users and moderators (admins only)"""
+    from django.db.models import Count, Q
+    from django.utils import timezone
+    from datetime import timedelta
+    
+    # Get filter parameters
+    search_query = request.GET.get('search', '')
+    role_filter = request.GET.get('role', '')
+    sort_by = request.GET.get('sort', '-created_at')
+    
+    # Base queryset with annotations
+    users = User.objects.annotate(
+        thread_count=Count('threads', distinct=True),
+        reply_count=Count('replies', distinct=True)
+    )
+    
+    # Apply search filter
+    if search_query:
+        users = users.filter(
+            Q(full_name__icontains=search_query) |
+            Q(email__icontains=search_query) |
+            Q(username__icontains=search_query)
+        )
+    
+    # Apply role filter
+    if role_filter == 'admin':
+        users = users.filter(is_superuser=True)
+    elif role_filter == 'moderator':
+        users = users.filter(
+            is_moderator=True, is_superuser=False
+        )
+    elif role_filter == 'regular':
+        users = users.filter(
+            is_moderator=False, is_staff=False, is_superuser=False
+        )
+    
+    # Apply sorting
+    if sort_by:
+        users = users.order_by(sort_by)
+    
+    # Calculate statistics
+    total_users = User.objects.count()
+    total_admins = User.objects.filter(is_superuser=True).count()
+    total_moderators = User.objects.filter(
+        is_moderator=True, is_superuser=False
+    ).count()
+    total_regular = User.objects.filter(
+        is_moderator=False, is_staff=False, is_superuser=False
+    ).count()
+    active_today = User.objects.filter(
+        last_login__gte=timezone.now() - timedelta(days=1)
+    ).count()
+    new_this_week = User.objects.filter(
+        created_at__gte=timezone.now() - timedelta(days=7)
+    ).count()
+    
+    # Pagination
+    from django.core.paginator import Paginator
+    paginator = Paginator(users, 20)  # 20 users per page
+    page = request.GET.get('page', 1)
+    
+    try:
+        users_page = paginator.page(page)
+    except:
+        users_page = paginator.page(1)
+    
+    context = {
+        'users': users_page,
+        'page_obj': users_page,
+        'is_paginated': paginator.num_pages > 1,
+        'total_users': total_users,
+        'total_admins': total_admins,
+        'total_moderators': total_moderators,
+        'total_regular': total_regular,
+        'active_today': active_today,
+        'new_this_week': new_this_week,
+    }
+    
+    return render(request, 'forum/manage_users.html', context)
+
+
+@login_required
+@moderator_required
+def toggle_moderator(request, pk):
+    """Toggle moderator status for a user"""
+    if request.method != 'POST':
+        return redirect('forum:manage_users')
+    
+    user = get_object_or_404(User, pk=pk)
+    
+    # Don't allow changing your own status
+    if user == request.user:
+        messages.error(request, "You cannot change your own moderator status.")
+        return redirect('forum:manage_users')
+    
+    # Toggle moderator status
+    user.is_moderator = not user.is_moderator
+    user.save()
+    
+    if user.is_moderator:
+        messages.success(request, f"✅ {user.get_display_name()} is now a moderator!")
+    else:
+        messages.success(request, f"❌ {user.get_display_name()} is no longer a moderator.")
+    
+    return redirect('forum:manage_users')
+
+
+@login_required
+def toggle_admin(request, pk):
+    """Toggle admin status for a user (superusers only)"""
+    # Only superusers can make other admins
+    if not request.user.is_superuser:
+        messages.error(request, "Only admins can grant admin privileges.")
+        return redirect('forum:manage_users')
+    
+    if request.method != 'POST':
+        return redirect('forum:manage_users')
+    
+    user = get_object_or_404(User, pk=pk)
+    
+    # Don't allow changing your own status
+    if user == request.user:
+        messages.error(request, "You cannot change your own admin status.")
+        return redirect('forum:manage_users')
+    
+    # Toggle admin status (superuser + staff)
+    if user.is_superuser:
+        # Remove admin privileges
+        user.is_superuser = False
+        user.is_staff = False
+        messages.success(request, f"👑 {user.get_display_name()} is no longer an admin.")
+    else:
+        # Grant admin privileges
+        user.is_superuser = True
+        user.is_staff = True  # Staff is needed to access Django admin
+        user.is_moderator = True  # Admins should also be moderators
+        messages.success(request, f"👑 {user.get_display_name()} is now an ADMIN with full privileges!")
+    
+    user.save()
+    return redirect('forum:manage_users')
+
+
+@login_required
+@moderator_required
 def moderation_queue(request):
     """View pending reports (moderators only)"""
     reports = Report.objects.filter(
         status='pending'
     ).select_related(
-        'thread', 'reply', 'reported_by'
+        'thread', 'reply', 'reporter'
     ).order_by('-created_at')
     
     context = {

@@ -1,0 +1,31 @@
+databases:
+  - name: studydeck-db
+    databaseName: studydeck
+    user: studydeck
+    plan: free
+
+services:
+  - type: web
+    name: studydeck-forum
+    runtime: python
+    plan: free
+    buildCommand: "pip install -r requirements.txt"
+    startCommand: "gunicorn studydeck_forum.wsgi:application"
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: studydeck-db
+          property: connectionString
+      - key: SECRET_KEY
+        generateValue: true
+      - key: PYTHON_VERSION
+        value: 3.12.0
+      - key: DEBUG
+        value: false
+      - key: ALLOWED_HOSTS
+        value: ".onrender.com"
+      - key: DJANGO_SETTINGS_MODULE
+        value: studydeck_forum.settings_production
+      - key: DISABLE_COLLECTSTATIC
+        value: 0
+    autoDeploy: false

@@ -55,3 +55,7 @@ class User(AbstractUser):
     def get_display_name(self):
         """Get the best available display name"""
         return self.full_name or self.username or self.email.split('@')[0]
+    
+    def can_moderate(self):
+        """Check if user can moderate content"""
+        return self.is_moderator or self.is_staff or self.is_superuser

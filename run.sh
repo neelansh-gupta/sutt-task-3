@@ -21,6 +21,15 @@ source venv/bin/activate
 echo "📚 Installing dependencies..."
 pip install -r requirements.txt -q
 
+# Check if Django is working properly
+python -c "import django.db.migrations.migration" 2>/dev/null
+if [ $? -ne 0 ]; then
+    echo "🔧 Fixing Django installation..."
+    pip uninstall django -y -q
+    pip install django==5.0.1 -q
+    echo "   ✓ Django fixed"
+fi
+
 # Ask user if they want to reset the database
 echo ""
 echo "⚠️  Do you want to reset the database with fresh data?"
@@ -60,20 +69,27 @@ if [[ $REPLY =~ ^[Yy]$ ]]; then
     python manage.py shell -c "
 from django.contrib.auth import get_user_model
 User = get_user_model()
-admin = User.objects.create_superuser(
-    username='admin',
-    email='admin@pilani.bits-pilani.ac.in',
-    password='admin123',
-    full_name='Admin User'
-)
-print('   ✓ Admin user created')
+if not User.objects.filter(email='admin@pilani.bits-pilani.ac.in').exists():
+    admin = User.objects.create_superuser(
+        username='admin',
+        email='admin@pilani.bits-pilani.ac.in',
+        password='admin123',
+        full_name='Admin User'
+    )
+    print('   ✓ Admin user created')
+else:
+    print('   ✓ Admin already exists')
 "
     
-    # Populate database with sample data
+    # ALWAYS populate database with sample data
     echo "📝 Loading sample data..."
+    echo "   → Adding courses..."
     python manage.py populate_courses
+    echo "   → Adding resources..."
     python manage.py populate_resources  
+    echo "   → Setting up forum categories..."
     python manage.py setup_forum
+    echo "   → Creating sample threads and discussions..."
     python manage.py populate_forum_content
     
     echo ""

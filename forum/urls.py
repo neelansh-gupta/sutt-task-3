@@ -27,12 +27,15 @@ urlpatterns = [
     path('reply/<int:pk>/edit/', views.edit_reply, name='edit_reply'),
     path('reply/<int:pk>/delete/', views.delete_reply, name='delete_reply'),
     path('reply/<int:pk>/like/', views.toggle_reply_like, name='toggle_reply_like'),
-    path('reply/<int:pk>/solution/', views.mark_solution, name='mark_solution'),
+    path('reply/<int:pk>/solution/', views.mark_reply_solution, name='mark_solution'),
     
     # Reporting
     path('report/', views.report_content, name='report_content'),
     
     # Moderation
     path('moderation/', views.moderation_queue, name='moderation_queue'),
-    path('moderation/report/<int:pk>/', views.handle_report, name='handle_report'),
+    path('moderation/users/', views.manage_users, name='manage_users'),
+    path('moderation/toggle/<int:pk>/', views.toggle_moderator, name='toggle_moderator'),
+    path('moderation/toggle-admin/<int:pk>/', views.toggle_admin, name='toggle_admin'),
+    path('moderation/report/<int:pk>/', views.resolve_report, name='handle_report'),
 ]

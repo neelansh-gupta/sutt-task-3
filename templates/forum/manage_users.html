@@ -1,0 +1,242 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Manage Users - StudyDeck Forum{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2>👥 Manage Users</h2>
+                <div>
+                    <a href="{% url 'forum:moderation_queue' %}" class="btn btn-warning">
+                        🛡️ Moderation Queue
+                    </a>
+                </div>
+            </div>
+
+            <!-- Stats Cards -->
+            <div class="row mb-4">
+                <div class="col-md-2">
+                    <div class="card text-center">
+                        <div class="card-body">
+                            <h6 class="card-title">Total Users</h6>
+                            <p class="card-text display-6">{{ total_users }}</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-2">
+                    <div class="card text-center">
+                        <div class="card-body">
+                            <h6 class="card-title">👑 Admins</h6>
+                            <p class="card-text display-6 text-danger">{{ total_admins }}</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-2">
+                    <div class="card text-center">
+                        <div class="card-body">
+                            <h6 class="card-title">🛡️ Moderators</h6>
+                            <p class="card-text display-6 text-warning">{{ total_moderators }}</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-2">
+                    <div class="card text-center">
+                        <div class="card-body">
+                            <h6 class="card-title">Regular Users</h6>
+                            <p class="card-text display-6 text-info">{{ total_regular }}</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-2">
+                    <div class="card text-center">
+                        <div class="card-body">
+                            <h6 class="card-title">Active Today</h6>
+                            <p class="card-text display-6 text-success">{{ active_today }}</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-2">
+                    <div class="card text-center">
+                        <div class="card-body">
+                            <h6 class="card-title">New This Week</h6>
+                            <p class="card-text display-6 text-primary">{{ new_this_week }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Search/Filter -->
+            <div class="card mb-4">
+                <div class="card-body">
+                    <form method="get" class="row g-3">
+                        <div class="col-md-4">
+                            <input type="text" name="search" class="form-control" placeholder="Search by name or email..." value="{{ request.GET.search }}">
+                        </div>
+                        <div class="col-md-3">
+                            <select name="role" class="form-select">
+                                <option value="">All Roles</option>
+                                <option value="admin" {% if request.GET.role == 'admin' %}selected{% endif %}>👑 Admins</option>
+                                <option value="moderator" {% if request.GET.role == 'moderator' %}selected{% endif %}>🛡️ Moderators</option>
+                                <option value="regular" {% if request.GET.role == 'regular' %}selected{% endif %}>Regular Users</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <select name="sort" class="form-select">
+                                <option value="-created_at" {% if request.GET.sort == '-created_at' %}selected{% endif %}>Newest First</option>
+                                <option value="created_at" {% if request.GET.sort == 'created_at' %}selected{% endif %}>Oldest First</option>
+                                <option value="full_name" {% if request.GET.sort == 'full_name' %}selected{% endif %}>Name (A-Z)</option>
+                                <option value="-last_login" {% if request.GET.sort == '-last_login' %}selected{% endif %}>Recently Active</option>
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <button type="submit" class="btn btn-primary w-100">🔍 Filter</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Users Table -->
+            <div class="card">
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>User</th>
+                                    <th>Email</th>
+                                    <th>Role</th>
+                                    <th>Joined</th>
+                                    <th>Last Active</th>
+                                    <th>Posts</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for user in users %}
+                                <tr>
+                                    <td>
+                                        <strong>{{ user.get_display_name }}</strong>
+                                        {% if user.is_superuser %}
+                                            <span class="badge bg-danger ms-1">Admin</span>
+                                        {% elif user.is_staff %}
+                                            <span class="badge bg-info ms-1">Staff</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ user.email }}</td>
+                                    <td>
+                                        {% if user.is_superuser %}
+                                            <span class="badge bg-danger">👑 Admin</span>
+                                        {% elif user.is_staff %}
+                                            <span class="badge bg-info">Staff</span>
+                                        {% elif user.is_moderator %}
+                                            <span class="badge bg-warning">🛡️ Moderator</span>
+                                        {% else %}
+                                            <span class="badge bg-secondary">Regular User</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ user.created_at|date:"M d, Y" }}</td>
+                                    <td>
+                                        {% if user.last_login %}
+                                            {{ user.last_login|timesince }} ago
+                                        {% else %}
+                                            Never
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-light text-dark">
+                                            {{ user.thread_count }} threads
+                                        </span>
+                                        <span class="badge bg-light text-dark">
+                                            {{ user.reply_count }} replies
+                                        </span>
+                                    </td>
+                                    <td>
+                                        {% if user != request.user %}
+                                            <div class="btn-group btn-group-sm" role="group">
+                                                <!-- Moderator Toggle -->
+                                                <form method="post" action="{% url 'forum:toggle_moderator' user.pk %}" class="d-inline">
+                                                    {% csrf_token %}
+                                                    {% if user.is_moderator %}
+                                                        <button type="submit" class="btn btn-outline-warning" title="Remove Moderator">
+                                                            🛡️ Mod
+                                                        </button>
+                                                    {% else %}
+                                                        <button type="submit" class="btn btn-outline-secondary" title="Make Moderator">
+                                                            🛡️ Mod
+                                                        </button>
+                                                    {% endif %}
+                                                </form>
+                                                
+                                                <!-- Admin Toggle (only for superusers) -->
+                                                {% if request.user.is_superuser %}
+                                                    <form method="post" action="{% url 'forum:toggle_admin' user.pk %}" class="d-inline">
+                                                        {% csrf_token %}
+                                                        {% if user.is_superuser %}
+                                                            <button type="submit" class="btn btn-outline-danger" title="Remove Admin"
+                                                                    onclick="return confirm('⚠️ Remove ADMIN privileges from {{ user.get_display_name }}? This will remove all administrative access!')">
+                                                                👑 Admin
+                                                            </button>
+                                                        {% else %}
+                                                            <button type="submit" class="btn btn-outline-secondary" title="Make Admin"
+                                                                    onclick="return confirm('⚠️ Grant FULL ADMIN privileges to {{ user.get_display_name }}? They will have complete control over the system!')">
+                                                                👑 Admin
+                                                            </button>
+                                                        {% endif %}
+                                                    </form>
+                                                {% endif %}
+                                            </div>
+                                        {% else %}
+                                            <span class="text-muted">You (Current User)</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="7" class="text-center py-4 text-muted">
+                                        No users found matching your criteria.
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Pagination -->
+                    {% if is_paginated %}
+                    <nav class="mt-4">
+                        <ul class="pagination justify-content-center">
+                            {% if page_obj.has_previous %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page=1{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.role %}&role={{ request.GET.role }}{% endif %}{% if request.GET.sort %}&sort={{ request.GET.sort }}{% endif %}">First</a>
+                                </li>
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.role %}&role={{ request.GET.role }}{% endif %}{% if request.GET.sort %}&sort={{ request.GET.sort }}{% endif %}">Previous</a>
+                                </li>
+                            {% endif %}
+                            
+                            <li class="page-item active">
+                                <span class="page-link">
+                                    Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+                                </span>
+                            </li>
+                            
+                            {% if page_obj.has_next %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.role %}&role={{ request.GET.role }}{% endif %}{% if request.GET.sort %}&sort={{ request.GET.sort }}{% endif %}">Next</a>
+                                </li>
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.role %}&role={{ request.GET.role }}{% endif %}{% if request.GET.sort %}&sort={{ request.GET.sort }}{% endif %}">Last</a>
+                                </li>
+                            {% endif %}
+                        </ul>
+                    </nav>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
