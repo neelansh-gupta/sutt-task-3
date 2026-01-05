@@ -17,9 +17,17 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = config('SECRET_KEY', default='django-insecure-7@v2$dc5qqw5a6r-q1(mviw859-a7junk$0wvq%g%n$=(9ff&2')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = config('DEBUG', default=True, cast=bool)
+# Debug mode - defaults to False on Render
+DEBUG = config('DEBUG', default=not os.environ.get('RENDER'), cast=bool)
 
-ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='localhost,127.0.0.1,sutt-task-3.onrender.com,[::1]').split(',')
+# For Render deployment
+import os
+if os.environ.get('RENDER'):
+    ALLOWED_HOSTS = ['.onrender.com', 'sutt-task-3.onrender.com']
+    CSRF_TRUSTED_ORIGINS = ['https://sutt-task-3.onrender.com']
+else:
+    ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='localhost,127.0.0.1,[::1]').split(',')
+    CSRF_TRUSTED_ORIGINS = ['http://localhost:8000', 'http://127.0.0.1:8000']
 
 
 # Application definition
