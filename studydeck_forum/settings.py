@@ -19,7 +19,7 @@ SECRET_KEY = config('SECRET_KEY', default='django-insecure-7@v2$dc5qqw5a6r-q1(mv
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = config('DEBUG', default=True, cast=bool)
 
-ALLOWED_HOSTS = ['*']  # Allow all hosts for development
+ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='localhost,127.0.0.1,sutt-task-3.onrender.com,[::1]').split(',')
 
 
 # Application definition
@@ -42,7 +42,6 @@ INSTALLED_APPS = [
     "crispy_forms",
     "crispy_bootstrap5",
     "markdownx",
-    "django_extensions",
     
     # Local apps
     "accounts",
@@ -63,9 +62,10 @@ MIDDLEWARE = [
     "allauth.account.middleware.AccountMiddleware",
 ]
 
-if DEBUG:
-    INSTALLED_APPS.append("debug_toolbar")
-    MIDDLEWARE.insert(0, "debug_toolbar.middleware.DebugToolbarMiddleware")
+# Debug toolbar disabled for production
+# if DEBUG:
+#     INSTALLED_APPS.append("debug_toolbar")
+#     MIDDLEWARE.insert(0, "debug_toolbar.middleware.DebugToolbarMiddleware")
 
 ROOT_URLCONF = "studydeck_forum.urls"
 
